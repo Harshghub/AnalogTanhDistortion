@@ -1,0 +1,41 @@
+# -------------------------------------------------------------------------- #
+# DE10-Lite + Arduino ADC/DAC shield — AnalogTanhDacTop
+# -------------------------------------------------------------------------- #
+
+set_global_assignment -name FAMILY "MAX 10"
+set_global_assignment -name DEVICE 10M50DAF484C6GES
+set_global_assignment -name TOP_LEVEL_ENTITY AnalogTanhDacTop
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name BOARD "MAX 10 DE10 - Lite"
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+
+set_global_assignment -name SYSTEMVERILOG_FILE AnalogTanhDacTop.sv
+set_global_assignment -name SYSTEMVERILOG_FILE AnalogTanhDistort.sv
+set_global_assignment -name SYSTEMVERILOG_FILE AdcReader.sv
+set_global_assignment -name SYSTEMVERILOG_FILE cordic_tanh.sv
+set_global_assignment -name SYSTEMVERILOG_FILE TickGen.sv
+set_global_assignment -name SYSTEMVERILOG_FILE DacWriter.sv
+
+set_global_assignment -name SDC_FILE Timing.sdc
+
+set_location_assignment PIN_P11 -to MAX10_CLK1_50
+set_location_assignment PIN_B8  -to KEY[0]
+set_location_assignment PIN_A7  -to KEY[1]
+
+set_location_assignment PIN_AB5 -to ARDUINO_IO[0]
+set_location_assignment PIN_AB6 -to ARDUINO_IO[1]
+set_location_assignment PIN_AB7 -to ARDUINO_IO[2]
+set_location_assignment PIN_AB8 -to ARDUINO_IO[3]
+
+set_location_assignment PIN_AB9  -to ARDUINO_IO[4]
+set_location_assignment PIN_Y10  -to ARDUINO_IO[5]
+set_location_assignment PIN_AA11 -to ARDUINO_IO[6]
+set_location_assignment PIN_AA12 -to ARDUINO_IO[7]
+
+set_global_assignment -name LAST_QUARTUS_VERSION "25.1std.0 Lite Edition"
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

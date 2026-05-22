@@ -1,0 +1,12 @@
+# Quartus build outputs
+output_files/
+db/
+incremental_db/
+*.qws
+.qsys_edit/
+
+# Simulation
+sim_build/
+__pycache__/
+results.xml
+dump.vcd

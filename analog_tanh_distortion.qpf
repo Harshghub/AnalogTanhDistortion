@@ -1,0 +1,9 @@
+# -------------------------------------------------------------------------- #
+# Quartus Prime project: Analog ADC -> tanh -> DAC (DE10-Lite)
+# Open this file in Quartus Prime (File -> Open Project).
+# -------------------------------------------------------------------------- #
+
+QUARTUS_VERSION = "23.1"
+DATE = "May 22, 2026"
+
+PROJECT_REVISION = "analog_tanh_distortion"
