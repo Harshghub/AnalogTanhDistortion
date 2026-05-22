@@ -2,6 +2,7 @@
 
 Read an analog signal on the Arduino ADC/DAC shield, apply hyperbolic CORDIC `tanh` soft-clipping in the FPGA, and play the result on the DAC.
 
+
 ## Files
 
 | File | Role |
