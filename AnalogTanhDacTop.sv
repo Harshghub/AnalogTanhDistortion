@@ -21,6 +21,7 @@ module AnalogTanhDacTop #(
     logic signed [15:0] in_o;
     logic signed [15:0] in_aligned_o;
     logic signed [15:0] distorted_o;
+    logic signed [15:0] amplified_o;
     logic signed [15:0] dac_data;
 
     logic adc_clk;
@@ -83,7 +84,10 @@ module AnalogTanhDacTop #(
         .distorted_o   (distorted_o)
     );
 
-    assign dac_data = distorted_o;
+    // SW[4:3] applies post-distortion output gain as a left shift (0..3 bits).
+    // Overflow is intentionally not clamped (wraparound/truncation is allowed).
+    assign amplified_o = distorted_o <<< SW[4:3];
+    assign dac_data    = amplified_o;
 
     DacWriter dac_writer (
         .clk_i         (clk),

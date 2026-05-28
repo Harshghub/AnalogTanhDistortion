@@ -27,6 +27,7 @@ Read an analog signal on the Arduino ADC/DAC shield, apply hyperbolic CORDIC `ta
 | `KEY[0]` | Push to reset (active-low) |
 | `KEY[1]` | Each press **toggles** tanh distortion on/off (starts **on**) |
 | `SW[2:0]` | Runtime distortion drive shift (`0` to `7`) |
+| `SW[4:3]` | Final output gain shift (`0` to `3`, i.e. `x1`, `x2`, `x4`, `x8`) |
 
 Signal chain: `AdcReader` → `AnalogTanhDistort` → `DacWriter`.
 
