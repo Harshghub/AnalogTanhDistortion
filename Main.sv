@@ -16,7 +16,7 @@ module Main(
     
    // This project implements the following signal processing chain
    //
-   // ADC --> CIC decimator --> FIR --> CIC interpolator --> DAC
+   // ADC --> CIC decimator --> FIR --> tanh --> biquad --> CIC interpolator --> DAC
    //
    // The ADC (and DAC) are both run at their proper update rate of 1 MHz for which their analog filters (anti-aliasing & reconstruction) were designed.
    // The CIC decimator internally lowers the sampling rate by a factor of 20 from 1 MHz down to 50 kHz
@@ -50,6 +50,13 @@ module Main(
    logic signed[23:0] b2;
    logic signed[23:0] a1;
    logic signed[23:0] a2;
+
+   // Tanh distortion (50 kHz, after FIR)
+   logic              distort_en_i;
+   logic              key1_sync;
+   logic              key1_prev;
+   logic signed [15:0] distorted_o;
+   logic signed [15:0] amplified_o;
    
    // Misc. internal signals
    logic reset;
@@ -79,6 +86,8 @@ module Main(
    
    //parameter num_of_stages_f1 = 3; // don't need many stages to compensate for CIC
    //parameter logic signed [18-1:0] coeffs_f1[num_of_stages_f1] = '{0, 1000, 0};
+
+   localparam int TANH_AMPLITUDE = 100;
 
    // Tick generator to divide the 50 MHz clock down to 1 MHz used to run the ADC & DAC
    TickGen #(50) tickGen (
@@ -127,6 +136,44 @@ module Main(
    // ADD DISTORTION HERE
    // Module should take signal_fir_filtered as input and output signal_fir_filtered_distorted
    // then signal_fir_filtered_distorted should be passed to biquad filter
+
+   // Tanh soft-clip at 50 kHz (after FIR). KEY[1] toggles distortion on/off.
+   always_ff @(posedge clk) begin
+      if (reset) begin
+         distort_en_i <= 1'b1;
+         key1_sync    <= 1'b1;
+         key1_prev    <= 1'b1;
+      end else begin
+         key1_sync <= KEY[1];
+         key1_prev <= key1_sync;
+         if (key1_sync == 1'b0 && key1_prev == 1'b1)
+            distort_en_i <= ~distort_en_i;
+      end
+   end
+
+   AnalogTanhDistort #(
+      .AMPLITUDE(TANH_AMPLITUDE)
+   ) tanh_path (
+      .clk             (clk),
+      .reset           (reset),
+      .distort_en_i    (distort_en_i),
+      .sample_i        (signal_fir_filtered),
+      .distort_shift_i (SW[2:0]),
+      .in_o            (),
+      .in_aligned_o    (),
+      .distorted_o     (distorted_o)
+   );
+
+    // SW[4:3] applies post-distortion output gain as a left shift (0..3 bits).
+    // Overflow is intentionally not clamped (wraparound/truncation is allowed).
+    assign amplified_o = distorted_o <<< SW[4:3];
+
+
+
+
+
+
+
    ////////////////////////////
 
    // Switch assignment:
@@ -139,7 +186,7 @@ module Main(
    // SW[6] = 6: Q gain 3
    // SW[7] = 7: Q gain 2
    // SW[8] = 8: Q gain 1
-   // SW[9] = 9: Filter in/out
+   // SW[9] = 9: Biquad in (UP) / out (DOWN); tanh always in path when using processed output
 
    // set the Q-factor according to the switches 6, 7, and 8
    always_comb begin
@@ -191,7 +238,8 @@ module Main(
       .clk_i(clk),
       .reset_i(reset),
       .tick_i(tick_reduced),
-      .signal_i(signal_fir_filtered),
+      // .signal_i(signal_fir_filtered),
+      .signal_i(amplified_o),
       .signal_o(signal_biquad_filtered),
       //.b0(24'sd8139),
       //.b1(24'sd16278),
@@ -210,13 +258,12 @@ module Main(
       .a2(a2)
    );
 
-   // use switch 9 to route output
+   // SW[9] UP: tanh + gain + biquad; SW[9] DOWN: tanh + gain only (no biquad bypass of tanh)
    always_comb begin
-      if (SW[9]) begin
+      if (SW[9])
          signal_to_interpolator = signal_biquad_filtered;
-      end else begin
-         signal_to_interpolator = signal_fir_filtered;
-      end
+      else
+         signal_to_interpolator = amplified_o;
    end
    
    // Instantiate the CIC Interpolator to raise the effective sampling rate back from 50 kHz up to 1 MHz
