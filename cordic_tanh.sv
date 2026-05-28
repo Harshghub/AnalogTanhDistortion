@@ -9,14 +9,20 @@ module cordic #(
     logic signed [word_SZ-1:0] x;
     logic signed [word_SZ-1:0] y;
 
-    Cordic_hyp cordic_hyp (
+    Cordic_hyp #(
+        .word_SZ(word_SZ),
+        .frac_SZ(frac_SZ)
+    ) cordic_hyp (
         .z_in (angle),
         .clk  (clk),
         .x_out(x),
         .y_out(y)
     );
 
-    CORDIC_Div cordic_div (
+    CORDIC_Div #(
+        .word_SZ(word_SZ),
+        .frac_SZ(frac_SZ)
+    ) cordic_div (
         .y_in (y),
         .x_in (x),
         .clk  (clk),
@@ -35,16 +41,16 @@ module Cordic_hyp #(
 );
     localparam int num_OfStage = frac_SZ;
 
-    logic [word_SZ-1:0] x_stage_Out [num_OfStage];
-    logic [word_SZ-1:0] y_stage_Out [num_OfStage];
-    logic [word_SZ-1:0] z_stage_Out [num_OfStage];
+    logic signed [word_SZ-1:0] x_stage_Out [num_OfStage];
+    logic signed [word_SZ-1:0] y_stage_Out [num_OfStage];
+    logic signed [word_SZ-1:0] z_stage_Out [num_OfStage];
 
     logic signed [word_SZ-1:0] x_in;
     logic signed [word_SZ-1:0] y_in;
     assign y_in = '0;
-    assign x_in = 18'b010011010100011111;
+    assign x_in = word_SZ'(18'b010011010100011111);
 
-    logic signed [31:0] atan_table [0:30];
+    logic signed [word_SZ-1:0] atan_table [0:30];
 
     assign atan_table[00] = 18'b001000110010011111;
     assign atan_table[01] = 18'b000100000101100011;
@@ -144,8 +150,8 @@ module CORDIC_Div #(
 );
     localparam int num_OfStage = word_SZ - 1;
 
-    logic [word_SZ-1:0] y_stage_Out [num_OfStage];
-    logic [word_SZ-1:0] z_stage_Out [num_OfStage];
+    logic signed [word_SZ-1:0] y_stage_Out [num_OfStage];
+    logic signed [word_SZ-1:0] z_stage_Out [num_OfStage];
 
     logic signed [word_SZ-1:0] z_in;
     assign z_in = '0;

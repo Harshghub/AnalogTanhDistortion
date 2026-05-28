@@ -35,6 +35,7 @@ async def analog_tanh_distortion(dut):
 
     dut.reset.value = 1
     dut.distort_en_i.value = 1
+    dut.distort_shift_i.value = 0
     dut.sample_i.value = 0
     for _ in range(10):
         await RisingEdge(dut.clk)
@@ -46,7 +47,7 @@ async def analog_tanh_distortion(dut):
     dut._log.info("=" * 72)
     dut._log.info(
         f"{'cycle':>8}  {'sample_i':>12}  {'in_aligned':>14}  "
-        f"{'distorted':>12}  {'|dist|/|in|':>12}"
+        f"{'tanh_sample':>12}  {'distorted':>12}  {'|dist|/|in|':>12}"
     )
     dut._log.info("=" * 72)
 
@@ -58,6 +59,7 @@ async def analog_tanh_distortion(dut):
         await RisingEdge(dut.clk)
         sample_in = sample_signed16(dut.sample_i.value)
         sample_aln = sample_signed16(dut.in_aligned_o.value)
+        tanh_sample = sample_signed16(dut.tanh_sample.value)
         dist = sample_signed16(dut.distorted_o.value)
         peaks_in = max(peaks_in, abs(sample_in))
         peaks_dist = max(peaks_dist, abs(dist))
@@ -65,7 +67,7 @@ async def analog_tanh_distortion(dut):
             ratio = abs(dist) / max(abs(sample_aln), 1)
             dut._log.info(
                 f"{cycle:8d}  {sample_in:12d}  {sample_aln:14d}  "
-                f"{dist:12d}  {ratio:12.4f}"
+                f"{tanh_sample:12d}  {dist:12d}  {ratio:12.4f}"
             )
 
     dut._log.info("=" * 72)

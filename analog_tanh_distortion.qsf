@@ -20,16 +20,19 @@ set_global_assignment -name SYSTEMVERILOG_FILE DacWriter.sv
 set_global_assignment -name SDC_FILE Timing.sdc
 
 set_location_assignment PIN_P11 -to MAX10_CLK1_50
-set_location_assignment PIN_B8  -to KEY[0]
-set_location_assignment PIN_A7  -to KEY[1]
+set_location_assignment PIN_B8 -to KEY[0]
+set_location_assignment PIN_A7 -to KEY[1]
+set_location_assignment PIN_C10 -to SW[0]
+set_location_assignment PIN_C11 -to SW[1]
+set_location_assignment PIN_D12 -to SW[2]
 
 set_location_assignment PIN_AB5 -to ARDUINO_IO[0]
 set_location_assignment PIN_AB6 -to ARDUINO_IO[1]
 set_location_assignment PIN_AB7 -to ARDUINO_IO[2]
 set_location_assignment PIN_AB8 -to ARDUINO_IO[3]
 
-set_location_assignment PIN_AB9  -to ARDUINO_IO[4]
-set_location_assignment PIN_Y10  -to ARDUINO_IO[5]
+set_location_assignment PIN_AB9 -to ARDUINO_IO[4]
+set_location_assignment PIN_Y10 -to ARDUINO_IO[5]
 set_location_assignment PIN_AA11 -to ARDUINO_IO[6]
 set_location_assignment PIN_AA12 -to ARDUINO_IO[7]
 

@@ -2,11 +2,11 @@
 // Pin wiring matches AdcDac.sv.
 module AnalogTanhDacTop #(
     parameter int AMPLITUDE     = 100,
-    parameter int DISTORT_SHIFT = 2,
     parameter int DAC_TICK_DIV  = 50    // 50 MHz / 50 = 1 MHz sample rate
 ) (
     input         MAX10_CLK1_50,
     input  [1:0]  KEY,
+    input  [9:0]  SW,
     inout  [9:0]  ARDUINO_IO
 );
 
@@ -71,13 +71,13 @@ module AnalogTanhDacTop #(
     );
 
     AnalogTanhDistort #(
-        .AMPLITUDE     (AMPLITUDE),
-        .DISTORT_SHIFT (DISTORT_SHIFT)
+        .AMPLITUDE     (AMPLITUDE)
     ) tanh_path (
         .clk           (clk),
         .reset         (reset),
         .distort_en_i  (distort_en_i),
         .sample_i      (adc_data),
+        .distort_shift_i(SW[2:0]),
         .in_o          (in_o),
         .in_aligned_o  (in_aligned_o),
         .distorted_o   (distorted_o)
