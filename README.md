@@ -49,4 +49,5 @@ Edit defaults in `AnalogTanhDacTop.sv` or `AnalogTanhDistort.sv`:
 |-----------|---------|
 | `AMPLITUDE` | Output level 0–100 % after tanh |
 | `DISTORT_SHIFT` | Extra drive into `tanh` (higher = stronger clipping) |
+| `SMALL_THRES` | For tiny `|input|`, bypass CORDIC and keep identity response |
 | `DAC_TICK_DIV` | Clock divider for 1 MHz ADC/DAC updates (50 → 50 MHz / 50) |

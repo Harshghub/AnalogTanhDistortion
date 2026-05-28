@@ -1,7 +1,8 @@
 // Real-time tanh soft-clip on a 16-bit signed stream (e.g. from AdcReader).
 module AnalogTanhDistort #(
     parameter int AMPLITUDE     = 100,  // 0–100 % output scale
-    parameter int DISTORT_SHIFT = 2     // extra drive into tanh (0 = mild, 2+ = heavy clip)
+    parameter int DISTORT_SHIFT = 2,    // extra drive into tanh (0 = mild, 2+ = heavy clip)
+    parameter int SMALL_THRES   = 200    // identity region for tiny |input| (signed 16-bit LSBs)
 ) (
     input  logic clk,
     input  logic reset,
@@ -38,9 +39,10 @@ module AnalogTanhDistort #(
     localparam logic [WORD_SZ-1:0] OUT_GAIN = WORD_SZ'((65536 * AMPLITUDE) / 100);
     logic signed [2*WORD_SZ-1:0] scaled;
     logic signed [15:0] tanh_sample;
+    logic signed [15:0] linear_or_tanh_sample;
+    logic [15:0] abs_in_aligned;
     assign scaled      = tanh_out * $signed(OUT_GAIN);
     assign tanh_sample = scaled[2*WORD_SZ-1:WORD_SZ];
-    assign distorted_o = distort_en_i ? tanh_sample : sample_i;
 
     logic signed [15:0] delay_pipe [TANH_LATENCY];
 
@@ -54,6 +56,10 @@ module AnalogTanhDistort #(
                 delay_pipe[i] <= delay_pipe[i - 1];
         end
     end
+
+    assign abs_in_aligned = in_aligned_o[15] ? $unsigned(-in_aligned_o) : $unsigned(in_aligned_o);
+    assign linear_or_tanh_sample = (abs_in_aligned <= SMALL_THRES) ? in_aligned_o : tanh_sample;
+    assign distorted_o = distort_en_i ? linear_or_tanh_sample : sample_i;
 
     assign in_o         = sample_i;
     assign in_aligned_o = delay_pipe[TANH_LATENCY - 1];
