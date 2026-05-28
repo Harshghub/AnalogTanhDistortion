@@ -10,15 +10,15 @@
 */
     
 module AdcReader(    
-    input logic             clk_i,      // clock
-    input logic             reset_i,    // reset
+    input                   clk_i,      // clock
+    input                   reset_i,    // reset
     output signed [15:0]    data_o,     // received data
-    input logic             start_i,    // start the readout
-    output logic            is_idle_o,  // 1 if in idle state
-    output logic            spi_clk_o,  // SPI clk
-    output logic            spi_mosi_o, // MOSI: always 1
-    output logic            cnv_o,      // Start conversion (SPI CS)
-    input logic             spi_miso_i  // MISO: The DAC data
+    input                   start_i,    // start the readout
+    output                  is_idle_o,  // 1 if in idle state
+    output                  spi_clk_o,  // SPI clk
+    output                  spi_mosi_o, // MOSI: always 1
+    output                  cnv_o,      // Start conversion (SPI CS)
+    input                   spi_miso_i  // MISO: The DAC data
     );
     
     

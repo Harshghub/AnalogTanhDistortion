@@ -1,41 +1,37 @@
-# Cocotb / Verilator simulation for AnalogTanhDistort (no ADC/DAC SPI).
-#
-# From course root:
-#   poetry run make -C Project/AnalogTanhDistortion sim
-#   poetry run make -C Project/AnalogTanhDistortion wave
+VERILOG_SOURCES = $(PWD)/ShifterTest.sv $(PWD)/Shifter.sv $(PWD)/Cordic.sv $(PWD)/FirFSM.sv $(PWD)/TickGen.sv
+# TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file:
+TOPLEVEL=ShifterTest
+# MODULE is the name of the Python test file:
+MODULE=ShifterTest
 
-COURSE_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST)))/../..)
-export PATH := $(COURSE_ROOT)/.venv/bin:$(PATH)
 
-VERILOG_SOURCES = \
-	$(PWD)/AnalogTanhDistort.sv \
-	$(PWD)/TickGen.sv \
-	$(PWD)/cordic_tanh.sv
-
-TOPLEVEL = AnalogTanhDistort
-MODULE   = analog_tanh_test
-
-SIM                      = verilator
+# use the Verilator for simulation
+SIM=verilator
+# set the timing precision (for performance reasons)
 COCOTB_HDL_TIMEPRECISION = 1ns
-EXTRA_ARGS              += --trace --trace-structs -Wno-fatal -Wno-WIDTHEXPAND -Wno-WIDTHTRUNC
+# Tell it to trace the result
+EXTRA_ARGS += --trace --trace-structs
 
-include $(shell $(COURSE_ROOT)/.venv/bin/cocotb-config --makefiles)/Makefile.sim
 
-.PHONY: wave help
+include $(shell cocotb-config --makefiles)/Makefile.sim
 
-help:
-	@echo "Targets:"
-	@echo "  sim   - build and run cocotb simulation"
-	@echo "  wave  - run sim then open gtkwave"
-	@echo "  clean - remove sim_build, results.xml, dump.vcd"
+PROJECT = main
 
-wave: sim
-	@WAVE=$$(ls -1 dump.vcd sim_build/*.fst sim_build/*.vcd 2>/dev/null | head -1); \
-	if [ -z "$$WAVE" ]; then \
-	  echo "No trace file — run 'make sim' first"; exit 1; \
-	fi; \
-	echo "Opening gtkwave: $$WAVE"; \
-	gtkwave $$WAVE &
+QUARTUS_CPF = docker run --platform linux/amd64 -it --rm -v .:/build didiermalenfant/quartus:22.1-apple-silicon quartus_cpf
+QUARTUS_SH  = docker run --platform linux/amd64 -it --rm -v .:/build didiermalenfant/quartus:22.1-apple-silicon quartus_sh
+ 
+all:
+	echo "Used for mac only. Targets: build, program, clean"
+
+build:
+	$(QUARTUS_SH) --flow compile $(PROJECT)
+
+program:	output_files/$(PROJECT).sof
+	$(QUARTUS_CPF) -c -q 24.0MHz -g 3.3 -n p output_files/$(PROJECT).sof $(PROJECT).svf
+	openFPGALoader -b de10lite $(PROJECT).svf 
 
 clean::
-	rm -rf sim_build __pycache__ results.xml dump.vcd
+	rm -rf output_files db incremental_db
+	rm -f $(PROJECT).svf
+	rm -rf __pycache__
+	rm -f results.xml

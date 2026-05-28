@@ -5,15 +5,15 @@
 */    
 module DacWriter
     (
-    input logic         clk_i,            // clock
-    input logic         reset_i,          // sync. reset
+    input               clk_i,            // clock
+    input               reset_i,          // sync. reset
     input signed [15:0] data_i,           // DAC value to send
-    input logic         start_i,          // 1 to start transmission
-    output logic        is_idle_o,        // 1 if in IDLE state
-    output logic        spi_clk_o,        // SPI clock
-    output logic        spi_mosi_o,       // SPI MOSI
-    output logic        spi_cs_o,         // chip select
-    output logic        dac_reset_no     // reset of the DAC
+    input               start_i,          // 1 to start transmission
+    output              is_idle_o,        // 1 if in IDLE state
+    output              spi_clk_o,        // SPI clock
+    output              spi_mosi_o,       // SPI MOSI
+    output              spi_cs_o,         // chip select
+    output              dac_reset_no     // reset of the DAC
     );
     
     typedef enum logic [4:0] {
@@ -47,48 +47,47 @@ module DacWriter
     
     
     // next-state logic
-    // TASK 2: WRITE YOUR NEXT STATE LOGIC HERE
     always_comb begin
-	//Set default values if not covered in state
-	state_d = state_q;
-	bit_counter_d = bit_counter_q;
+        // default: stay where you are
+        state_d = state_q;
+        bit_counter_d = bit_counter_q;
         data_reg_d = data_reg_q;
-        // FSM transition logic
-		case(state_q)
-			IDLE: begin
-				if(start_i) begin
-					// start at 15 as MSB comes first
-					bit_counter_d = 15;
-					state_d = CS_DOWN;
-					//Transform 16-bit signed to unsigned
-					data_reg_d = 16'($unsigned(17'sh8000 + data_i));
-				end
-			end
-			CS_DOWN: state_d = SET_CLK;
-			SET_CLK: state_d = SEL_BIT;
-			SEL_BIT: begin
-				// We decrease the counter for the next bit until all 16 bits are transfered
-				if(bit_counter_q > 0) begin
-					bit_counter_d = bit_counter_q - 4'd1;
-					state_d = SET_CLK;
-				end
-				else begin
-					state_d  = DONE;
-				end
-			end
-			DONE: begin
-			//wait until start goes back to zero
-				if(!start_i) begin
-					state_d = IDLE;
-				end
-			end
-			
-			default:
-				state_d = state_q;
-		endcase
-		
+        
+        // if in idle: wait for the start_i to go '1'
+        if (state_q == IDLE) begin
+            bit_counter_d = 15;
+            // here we need to convert the input signal to unsigned with offset
+            data_reg_d = 16'($unsigned(17'sh8000 + data_i));
+            if (start_i) state_d = CS_DOWN;
+        end
+        
+        
+        // lower the CS signal
+        if (state_q == CS_DOWN) begin
+            state_d = SET_CLK;
+        end
+        
+        
+        // set the clock
+        if (state_q == SET_CLK) state_d = SEL_BIT;
+        
+        // if we are not yet done: increment the bit counter and repeat
+        // otherwise: go to DONE
+        if (state_q == SEL_BIT) begin
+            if (bit_counter_q > 0) begin
+                bit_counter_d = bit_counter_q - 4'd1;
+                state_d = SET_CLK;
+            end else state_d = DONE;
+        end
+        
+        
+        // wait for the start signal to clear
+        if (state_q == DONE) begin
+            if (!start_i) state_d = IDLE;
+        end
+    end // next state logic
     
-    end
+    
     
     
     
