@@ -80,7 +80,8 @@ module AnalogTanhDistort #(
     logic [15:0] abs_in_aligned;
     assign driven_sat   = sat_to_i16(driven);
     assign clipped_sample = soft_clip_i16(driven_sat);
-    assign renorm_sample  = (shift_amt > 0) ? (clipped_sample >>> shift_amt) : clipped_sample;
+    // assign renorm_sample  = (shift_amt > 0) ? (clipped_sample >>> shift_amt) : clipped_sample;
+    assign renorm_sample  =  clipped_sample;
     assign scaled       = $signed({{(WORD_SZ-16){renorm_sample[15]}}, renorm_sample}) * $signed(OUT_GAIN);
     assign amp_scaled   = scaled >>> 8;
     assign tanh_sample  = sat_to_i16(amp_scaled);
